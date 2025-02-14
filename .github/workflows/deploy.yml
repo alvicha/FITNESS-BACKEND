@@ -13,19 +13,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Paso 2: Configurar la clave SSH para la conexión
-      - name: Set up SSH key for deployment
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      # Paso 3: Instalar sshpass y configurar la contraseña SSH
+      # Paso 2: Instalar sshpass para la autenticación basada en contraseña
       - name: Install sshpass for password-based authentication
         run: sudo apt-get install -y sshpass
 
-      # Paso 4: Desplegar a la instancia EC2 usando la contraseña SSH
+      # Paso 3: Desplegar a la instancia EC2 usando la contraseña SSH
       - name: Deploy to AWS EC2
         run: |
+          # Utilizar sshpass para la autenticación y agregar la opción -o a ssh
           sshpass -p ${{ secrets.SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_IP_ADDRESS }} << 'EOF'
             # Cambiar al directorio donde está tu aplicación
             cd ${{ secrets.APP_PATH }}
