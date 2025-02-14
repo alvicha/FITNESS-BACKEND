@@ -28,6 +28,12 @@ class Progreso
     #[ORM\ManyToOne(inversedBy: 'progresos')]
     private ?Usuarios $id_miembro = null;
 
+
+    public function __construct()
+    {
+        $this->fecha = new \DateTime();
+
+    }
     public function getId(): ?int
     {
         return $this->id;

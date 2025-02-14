@@ -20,11 +20,12 @@ final class ApiUsuariosController extends AbstractController
         ]);
     }
     #[Route('/api/usuarios/addClase', methods: ['POST'], name: 'add_clase')]
-public function addCalseUsuario(Request $request, EntityManagerInterface $em): JsonResponse
+public function addClaseUsuario(Request $request, EntityManagerInterface $em): JsonResponse
 {
-    $usuarioId = $request->get('usuario_id');
-    $claseId = $request->get('clase_id');
-    $data = json_decode($request->getContent(), associative: true);
+    $data = json_decode($request->getContent(), true);
+
+    $usuarioId = $data['usuario_id'];
+    $claseId = $data['clase_id'];
     $usuario = $em->getRepository(Usuarios::class)->find($usuarioId);
     $clase = $em->getRepository(Clases::class)->find($claseId);
 

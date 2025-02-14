@@ -31,6 +31,10 @@ class Notificaciones
     #[ORM\ManyToOne(inversedBy: 'notificaciones')]
     private ?Usuarios $id_usuario = null;
 
+    public function __construct()
+    {
+        $this->fecha_envio = new \DateTime();
+    }
     public function getId(): ?int
     {
         return $this->id;
@@ -74,7 +78,8 @@ class Notificaciones
 
     public function setFechaEnvio(\DateTimeInterface $fecha_envio): static
     {
-        $this->fecha_envio = $fecha_envio;
+        $this->fecha_envio = (new \DateTime())->format('Y-m-d');
+
 
         return $this;
     }

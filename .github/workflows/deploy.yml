@@ -1,0 +1,35 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up SSH key for deployment
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to AWS EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.AWS_IP_ADDRESS }} << 'EOF'
+            cd /ruta/a/tu/proyecto
+            git pull origin main
+            composer install --no-dev --optimize-autoloader
+            # Establecer las variables de entorno para la base de datos
+            export DB_HOST=${{ secrets.DB_HOST }}
+            export DB_NAME=${{ secrets.DB_NAME }}
+            export DB_USER=${{ secrets.DB_USER }}
+            export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            php bin/console doctrine:database:drop --force --env=prod
+            php bin/console doctrine:database:create --env=prod
+            php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+            sudo systemctl restart nginx
+          EOF
