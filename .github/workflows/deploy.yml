@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Paso 2: Agregar clave SSH para autenticación
+      # Paso 2: Configurar la clave SSH para la autenticación
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
