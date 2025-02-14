@@ -50,6 +50,6 @@ jobs:
             php bin/console cache:clear --env=prod
             php bin/console assets:install --env=prod
             
-            # Reiniciar el servidor Nginx para que tome los cambios
+            # Reiniciar el servidor Nginx para que tome los  cambios
             sudo systemctl restart nginx
           EOF
