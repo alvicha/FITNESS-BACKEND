@@ -21,7 +21,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -t rsa ${{ secrets.AWS_IP_ADDRESS }} >> ~/.ssh/known_hosts
 
-      # Paso 3: Desplegar a la instancia EC2 usando la clave SSH
+      # Paso 3 : Desplegar a la instancia EC2 usando la clave SSH
       - name: Deploy to AWS EC2
         run: |
           # Cambiar al directorio donde está la aplicación Symfony
