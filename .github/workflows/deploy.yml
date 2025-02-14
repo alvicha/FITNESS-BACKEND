@@ -22,7 +22,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -t rsa ${{ secrets.AWS_IP_ADDRESS }} >> ~/.ssh/known_hosts
 
-      # Paso 3: Desplegar a la instancia  EC 2 u sando  la clave SSH
+      # Paso 3: Desplegar a la instancia EC2 usando la clave SSH
       - name: Deploy to AWS EC2
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_IP_ADDRESS }} << 'EOF'
@@ -50,6 +50,6 @@ jobs:
             php bin/console cache:clear --env=prod
             php bin/console assets:install --env=prod
             
-            # Reiniciar el servidor Nginx para que tome los  cambios
-            sudo systemctl restart nginx
+            # Reiniciar el servidor Apache para que tome los cambios
+            sudo systemctl restart apache2
           EOF
