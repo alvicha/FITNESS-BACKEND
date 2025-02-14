@@ -35,7 +35,7 @@ jobs:
             # Instalar las dependencias de Composer
             composer install --no-dev --optimize-autoloader
             
-            # Establecer las variables de entorno para la base de datos
+            # Establecer las variables de entorno para  la base de datos
             export DB_HOST=${{ secrets.DB_HOST }}
             export DB_NAME=${{ secrets.DB_NAME }}
             export DB_USER=${{ secrets.DB_USER }}
