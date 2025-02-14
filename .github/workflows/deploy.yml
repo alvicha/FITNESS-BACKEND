@@ -9,27 +9,44 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # Paso 1: Hacer checkout del código
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      # Paso 2: Configurar la clave SSH para la conexión
       - name: Set up SSH key for deployment
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      # Paso 3: Instalar sshpass y configurar la contraseña SSH
+      - name: Install sshpass for password-based authentication
+        run: sudo apt-get install -y sshpass
+
+      # Paso 4: Desplegar a la instancia EC2 usando la contraseña SSH
       - name: Deploy to AWS EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.AWS_IP_ADDRESS }} << 'EOF'
-            cd /ruta/a/tu/proyecto
+          sshpass -p ${{ secrets.SSH_PASSWORD }} ssh -o StrictHostKeyChecking=no ${{ secrets.AWS_SSH_USER }}@${{ secrets.AWS_IP_ADDRESS }} << 'EOF'
+            # Cambiar al directorio donde está tu aplicación
+            cd ${{ secrets.APP_PATH }}
+            
+            # Hacer pull de los últimos cambios desde el repositorio
             git pull origin main
+            
+            # Instalar dependencias con Composer
             composer install --no-dev --optimize-autoloader
+            
             # Establecer las variables de entorno para la base de datos
             export DB_HOST=${{ secrets.DB_HOST }}
             export DB_NAME=${{ secrets.DB_NAME }}
             export DB_USER=${{ secrets.DB_USER }}
             export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            
+            # Ejecutar las migraciones y otras tareas de Symfony
             php bin/console doctrine:database:drop --force --env=prod
             php bin/console doctrine:database:create --env=prod
             php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+            
+            # Reiniciar el servidor Nginx para que tome los cambios
             sudo systemctl restart nginx
           EOF
