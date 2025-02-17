@@ -20,39 +20,39 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 3. Construir y subir la imagen de Symfony
-      - name: Construir y subir imagen Symfony
+      # 3. Construir y subir la imagen de Symfony (PHP)
+      - name: Construir y subir imagen Symfony (PHP)
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-image:latest -f backend/softwareFitness/docker/php/Dockerfile backend/softwareFitness/
-          docker push ${{ secrets.DOCKER_USERNAME }}/symfony-image:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-backend:latest -f proyectoBack/docker_pi/php/Dockerfile proyectoBack/docker_pi/php/
+          docker push ${{ secrets.DOCKER_USERNAME }}/symfony-backend:latest
 
       # 4. Construir y subir la imagen de Nginx
       - name: Construir y subir imagen Nginx
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-pi:latest -f backend/softwareFitness/docker/nginx.Dockerfile backend/softwareFitness/
-          docker push ${{ secrets.DOCKER_USERNAME }}/symfony-pi:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-nginx:latest -f proyectoBack/docker_pi/nginx.Dockerfile proyectoBack/docker_pi/
+          docker push ${{ secrets.DOCKER_USERNAME }}/symfony-nginx:latest
 
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
-      # 2. Verificar estructura del repositorio
-      - name: Verificar existencia de compose.yml
+      # 1. Verificar estructura del repositorio en GitHub Actions
+      - name: Verificar existencia de archivos
         run: |
-          ls -l /home/runner/work/FITNESS-BACKEND/FITNESS-BACKEND/backend/softwareFitness/
+          ls -l proyectoBack/
+          ls -l proyectoBack/docker_pi/
 
-      # 3. Transferir el archivo compose.yml al servidor remoto
+      # 2. Transferir el archivo `compose.yml` al servidor remoto
       - name: Transferir el archivo compose.yml al servidor remoto
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.REMOTE_KEY }}
-          source: ${{ github.workspace }}/compose.yml
+          source: proyectoBack/compose.yml
           target: ~/deploy/
-          strip_components: 4
 
-      # 4. Desplegar en el servidor remoto usando Docker Compose
+      # 3. Desplegar en el servidor remoto usando Docker Compose
       - name: Desplegar en servidor remoto
         uses: appleboy/ssh-action@master
         with:
@@ -63,12 +63,12 @@ jobs:
             sudo chmod 666 /var/run/docker.sock
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
-            # Detener, bajar las imágenes y reiniciar los contenedores
-            docker-compose -f /home/${{ secrets.REMOTE_USER }}/deploy/compose.yml pull
-            docker-compose -f /home/${{ secrets.REMOTE_USER }}/deploy/compose.yml down
-            docker-compose -f /home/${{ secrets.REMOTE_USER }}/deploy/compose.yml up -d --force-recreate
+            # Detener y actualizar los contenedores
+            docker-compose -f ~/deploy/compose.yml pull
+            docker-compose -f ~/deploy/compose.yml down
+            docker-compose -f ~/deploy/compose.yml up -d --force-recreate
 
-      # 5. Crear la base de datos si no existe y ejecutar migraciones
+      # 4. Crear la base de datos y ejecutar migraciones
       - name: Crear la base de datos y ejecutar migraciones
         uses: appleboy/ssh-action@master
         with:
