@@ -43,7 +43,7 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.REMOTE_KEY }}
-          source: docker_pi/compose.yml
+          source: ./compose.yml
           target: ~/deploy/
 
       # 3. Desplegar en el servidor remoto usando Docker Compose
