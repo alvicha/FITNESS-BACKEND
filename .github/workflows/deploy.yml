@@ -3,7 +3,7 @@ name: Deploy Symfony API with MySQL and Nginx
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
   build-and-push:
@@ -13,34 +13,38 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v4
 
-      # 2. Iniciar sesión en Docker Hub
+      # 2. Verificar estructura del repositorio
+      - name: Verificar estructura de archivos
+        run: |
+          ls -R proyectoBack/
+
+      # 3. Iniciar sesión en Docker Hub
       - name: Iniciar sesión en Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 3. Construir y subir la imagen de Symfony (PHP)
+      # 4. Construir y subir la imagen de Symfony (PHP)
       - name: Construir y subir imagen Symfony (PHP)
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-backend:latest -f proyectoBack/docker_pi/php/Dockerfile proyectoBack/docker_pi/php/
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-backend:latest -f proyectoBack/docker_pi/php/Dockerfile proyectoBack/
           docker push ${{ secrets.DOCKER_USERNAME }}/symfony-backend:latest
 
-      # 4. Construir y subir la imagen de Nginx
+      # 5. Construir y subir la imagen de Nginx
       - name: Construir y subir imagen Nginx
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-nginx:latest -f proyectoBack/docker_pi/nginx.Dockerfile proyectoBack/docker_pi/
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-nginx:latest -f proyectoBack/docker_pi/nginx.Dockerfile proyectoBack/
           docker push ${{ secrets.DOCKER_USERNAME }}/symfony-nginx:latest
 
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
-      # 1. Verificar estructura del repositorio en GitHub Actions
-      - name: Verificar existencia de archivos
+      # 1. Verificar estructura antes de transferir archivos
+      - name: Verificar existencia de archivos en GitHub Actions
         run: |
-          ls -l proyectoBack/
-          ls -l proyectoBack/docker_pi/
+          ls -R proyectoBack/
 
       # 2. Transferir el archivo `compose.yml` al servidor remoto
       - name: Transferir el archivo compose.yml al servidor remoto
@@ -49,7 +53,7 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.REMOTE_KEY }}
-          source: proyectoBack/compose.yml
+          source: proyectoBack/docker_pi/compose.yml
           target: ~/deploy/
 
       # 3. Desplegar en el servidor remoto usando Docker Compose
@@ -63,7 +67,7 @@ jobs:
             sudo chmod 666 /var/run/docker.sock
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
-            # Detener y actualizar los contenedores
+            # Detener, actualizar y reiniciar los contenedores
             docker-compose -f ~/deploy/compose.yml pull
             docker-compose -f ~/deploy/compose.yml down
             docker-compose -f ~/deploy/compose.yml up -d --force-recreate
