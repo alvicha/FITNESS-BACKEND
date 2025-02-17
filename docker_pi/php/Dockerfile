@@ -22,10 +22,7 @@ RUN apt-get update && apt-get install -y \
 
 # Configurar el directorio de trabajo y copiar el código
 WORKDIR /var/www/html
-COPY . /var/www/html
-
-# Copiar solo composer.json a la ruta correcta dentro del contenedor
-COPY composer.json /var/www/html/composer.json
+COPY . .
 
 # Instalar Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer

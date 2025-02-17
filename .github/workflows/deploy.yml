@@ -43,9 +43,9 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.REMOTE_KEY }}
-          source: ${{ github.workspace }}/compose.yml
+          source: ${{ github.workspace }}/proyectoBack/compose.yml
           target: ~/deploy/
-          strip_components: 4
+          strip_components: 3
 
       - name: Desplegar en servidor remoto
         uses: appleboy/ssh-action@master
