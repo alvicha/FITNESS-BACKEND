@@ -43,32 +43,30 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.REMOTE_KEY }}
-          source: ./compose.yml
+          source: ${{ github.workspace }}/compose.yml
           target: ~/deploy/
+          strip_components: 4
 
-      # 3. Desplegar en el servidor remoto usando Docker Compose
       - name: Desplegar en servidor remoto
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.REMOTE_KEY }}
-          script: |
-            sudo chmod 666 /var/run/docker.sock
-            echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+              host: ${{ secrets.REMOTE_HOST }}
+              username: ${{ secrets.REMOTE_USER }}
+              key: ${{ secrets.REMOTE_KEY }}
+              script: |
+                  sudo chmod 666 /var/run/docker.sock
+                  echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
-            # Detener, actualizar y reiniciar los contenedores
-            docker-compose -f ~/deploy/compose.yml pull
-            docker-compose -f ~/deploy/compose.yml down
-            docker-compose -f ~/deploy/compose.yml up -d --force-recreate
+                  docker-compose -f /home/${{ secrets.REMOTE_USER }}/deploy/compose.yml pull
+                  docker-compose -f /home/${{ secrets.REMOTE_USER }}/deploy/compose.yml down
+                  docker-compose -f /home/${{ secrets.REMOTE_USER }}/deploy/compose.yml up -d --force-recreate
 
-      # 4. Crear la base de datos y ejecutar migraciones
-      - name: Crear la base de datos y ejecutar migraciones
+      - name: Crear la base de datos si no existe y ejecutar migraciones
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.REMOTE_KEY }}
-          script: |
-            docker exec symfony_app php bin/console doctrine:database:create --if-not-exists
-            docker exec symfony_app php bin/console doctrine:migrations:migrate --no-interaction
+              host: ${{ secrets.REMOTE_HOST }}
+              username: ${{ secrets.REMOTE_USER }}
+              key: ${{ secrets.REMOTE_KEY }}
+              script: |
+                  docker exec symfony_app php bin/console doctrine:database:create --if-not-exists
+                  docker exec symfony_app php bin/console doctrine:migrations:migrate --no-interaction
