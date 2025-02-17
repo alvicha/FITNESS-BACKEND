@@ -37,10 +37,9 @@ jobs:
     needs: build-and-push
     steps:
       # 2. Verificar estructura del repositorio
-      - name: Verificar estructura del repositorio
+      - name: Verificar existencia de compose.yml
         run: |
-          echo "Directorio actual: $(pwd)"
-          ls -R
+          ls -l /home/runner/work/FITNESS-BACKEND/FITNESS-BACKEND/backend/softwareFitness/
 
       # 3. Transferir el archivo compose.yml al servidor remoto
       - name: Transferir el archivo compose.yml al servidor remoto
