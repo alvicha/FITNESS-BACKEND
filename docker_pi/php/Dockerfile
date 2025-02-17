@@ -20,15 +20,20 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql zip gd intl opcache
 
-# Configurar el directorio de trabajo y copiar el código
+# Configurar el directorio de trabajo
 WORKDIR /var/www/html
-COPY . /var/www/html
+
+# Copiar solo el archivo composer.json y composer.lock primero
+COPY composer.json composer.lock ./
 
 # Instalar Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Instalar dependencias de Composer sin ejecutar auto-scripts
 RUN composer install --no-dev --no-interaction --optimize-autoloader --no-scripts
+
+# Copiar el resto de la aplicación
+COPY . .
 
 # Limpiar caché
 RUN php bin/console cache:clear --env=prod || true
