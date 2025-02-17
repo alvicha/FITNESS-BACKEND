@@ -13,11 +13,6 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v4
 
-      # 2. Verificar estructura del repositorio
-      - name: Verificar estructura de archivos
-        run: |
-          ls -R proyectoBack/
-
       # 3. Iniciar sesión en Docker Hub
       - name: Iniciar sesión en Docker Hub
         uses: docker/login-action@v2
@@ -28,24 +23,19 @@ jobs:
       # 4. Construir y subir la imagen de Symfony (PHP)
       - name: Construir y subir imagen Symfony (PHP)
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-backend:latest -f proyectoBack/docker_pi/php/Dockerfile proyectoBack/
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-backend:latest -f docker_pi/php/Dockerfile docker_pi/
           docker push ${{ secrets.DOCKER_USERNAME }}/symfony-backend:latest
 
       # 5. Construir y subir la imagen de Nginx
       - name: Construir y subir imagen Nginx
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-nginx:latest -f proyectoBack/docker_pi/nginx.Dockerfile proyectoBack/
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-nginx:latest -f docker_pi/nginx.Dockerfile docker_pi/
           docker push ${{ secrets.DOCKER_USERNAME }}/symfony-nginx:latest
 
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
-      # 1. Verificar estructura antes de transferir archivos
-      - name: Verificar existencia de archivos en GitHub Actions
-        run: |
-          ls -R proyectoBack/
-
       # 2. Transferir el archivo `compose.yml` al servidor remoto
       - name: Transferir el archivo compose.yml al servidor remoto
         uses: appleboy/scp-action@master
@@ -53,7 +43,7 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.REMOTE_KEY }}
-          source: proyectoBack/docker_pi/compose.yml
+          source: docker_pi/compose.yml
           target: ~/deploy/
 
       # 3. Desplegar en el servidor remoto usando Docker Compose
