@@ -1,37 +1,26 @@
-# Usa la imagen oficial de PHP con FPM y las extensiones necesarias
-FROM php:8.2-fpm
+FROM php:8.3-apache
+WORKDIR /www/html
+RUN apt-get update
+RUN apt-get -y install apt-utils
+#RUN apt-get -y libapache2-mod-php
+RUN apt-get -y install nano
+RUN apt-get -y install zip
+RUN apt-get -y install unzip
+RUN apt-get -y install git
+RUN apt-get -y install curl
+RUN docker-php-ext-install mysqli pdo pdo_mysql
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+#RUN php -r "if (hash_file('sha384', 'composer-setup.php') === '55ce33d7678c5a611085589f1f3ddf8b3c52d662cd01d4ba75c0ee0459970c2200a51f492d557530c71c15d8dba01eae') \
+#    { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+RUN php composer-setup.php
+RUN php -r "unlink('composer-setup.php');"
+RUN mv composer.phar /usr/local/bin/composer
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh' | bash
+RUN apt-get -y install symfony-cli
 
-# Configurar entorno a producción
-ENV APP_ENV=prod
-ENV APP_DEBUG=0
+#ENV APACHE_DOCUMENT_ROOT /www/html
+#ENV APACHE_LOG_DIR /var/log/apache2
+#ENV APACHE_RUN_USER www-data
+#ENV APACHE_RUN_GROUP www-data
 
-# Instala paquetes necesarios
-RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    libzip-dev \
-    unzip \
-    git \
-    curl \
-    libonig-dev \
-    libxml2-dev \
-    libicu-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql zip gd intl opcache
-
-# Configura el directorio de trabajo y copia el código
-WORKDIR /var/www/html
-COPY . .
-
-# Instala Composer y dependencias sin ejecutar auto-scripts
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-    && composer install --no-dev --no-interaction --optimize-autoloader --no-scripts
-
-# Ejecuta cache:clear manualmente en entorno prod
-RUN php bin/console cache:clear --env=prod || true
-
-# Ajusta permisos
-RUN chown -R www-data:www-data /var/www/html
-
-CMD ["php-fpm"]
+COPY ../ .
