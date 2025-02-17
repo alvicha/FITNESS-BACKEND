@@ -23,13 +23,13 @@ jobs:
       # 3. Construir y subir la imagen de Symfony
       - name: Construir y subir imagen Symfony
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-image:latest -f backend/softwareFitness/docker/Dockerfile backend/softwareFitness/
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-image:latest -f backend/softwareFitness/docker/php/Dockerfile backend/softwareFitness/
           docker push ${{ secrets.DOCKER_USERNAME }}/symfony-image:latest
 
       # 4. Construir y subir la imagen de Nginx
       - name: Construir y subir imagen Nginx
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-pi:latest -f backend/softwareFitness/docker/Dockerfile backend/softwareFitness/
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/symfony-pi:latest -f backend/softwareFitness/docker/nginx.Dockerfile backend/softwareFitness/
           docker push ${{ secrets.DOCKER_USERNAME }}/symfony-pi:latest
 
   deploy:
